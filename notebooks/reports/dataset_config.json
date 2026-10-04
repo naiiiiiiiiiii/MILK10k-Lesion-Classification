@@ -1,0 +1,24 @@
+{
+    "label_mapping": {
+        "Benign": 0,
+        "Indeterminate": 1,
+        "Malignant": 2
+    },
+    "normalization": {
+        "mean": [
+            0.485,
+            0.456,
+            0.406
+        ],
+        "std": [
+            0.229,
+            0.224,
+            0.225
+        ]
+    },
+    "class_weights": [
+        1.1788,
+        14.913,
+        8.0
+    ]
+}

@@ -1,0 +1,101 @@
+{
+  "primary_target": "diagnosis_1",
+  "primary_classes": [
+    "Benign",
+    "Indeterminate",
+    "Malignant"
+  ],
+  "primary_class_to_idx": {
+    "Benign": 0,
+    "Indeterminate": 1,
+    "Malignant": 2
+  },
+  "indeterminate_strategy": "keep_as_3rd_class",
+  "indeterminate_count": 123,
+  "indeterminate_pct": 2.35,
+  "stretch_target": "class_name_11class",
+  "stretch_classes": [
+    "AKIEC",
+    "BCC",
+    "BEN_OTH",
+    "BKL",
+    "DF",
+    "INF",
+    "MAL_OTH",
+    "MEL",
+    "NV",
+    "SCCKA",
+    "VASC"
+  ],
+  "stretch_class_to_idx": {
+    "AKIEC": 0,
+    "BCC": 1,
+    "BEN_OTH": 2,
+    "BKL": 3,
+    "DF": 4,
+    "INF": 5,
+    "MAL_OTH": 6,
+    "MEL": 7,
+    "NV": 8,
+    "SCCKA": 9,
+    "VASC": 10
+  },
+  "class_to_diagnosis1": {
+    "AKIEC": [
+      "Malignant",
+      "Indeterminate"
+    ],
+    "BCC": [
+      "Malignant"
+    ],
+    "BEN_OTH": [
+      "Benign"
+    ],
+    "BKL": [
+      "Benign"
+    ],
+    "DF": [
+      "Benign"
+    ],
+    "INF": [
+      "Benign"
+    ],
+    "MAL_OTH": [
+      "Malignant"
+    ],
+    "MEL": [
+      "Malignant"
+    ],
+    "NV": [
+      "Benign"
+    ],
+    "SCCKA": [
+      "Malignant"
+    ],
+    "VASC": [
+      "Benign"
+    ]
+  },
+  "ambiguous_classes": [
+    "AKIEC"
+  ],
+  "rare_class_strategy": "class_weighting_no_merge",
+  "rare_classes": [
+    "MAL_OTH",
+    "DF",
+    "INF",
+    "VASC",
+    "BEN_OTH"
+  ],
+  "rare_class_counts": {
+    "MAL_OTH": 9,
+    "DF": 52,
+    "INF": 50,
+    "VASC": 47,
+    "BEN_OTH": 44
+  },
+  "rare_class_note": "MAL_OTH is Malignant; DF/INF/VASC/BEN_OTH are all Benign -- merging across this boundary was rejected as clinically incoherent.",
+  "n_lesions_total": 5240,
+  "seed": 0,
+  "created_date": "2026-10-04"
+}

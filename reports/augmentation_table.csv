@@ -1,0 +1,8 @@
+Augmentation,Parameters,Medical justification
+Resize,"(224, 224)",Standardizes input size for the network; does not alter lesion tissue or morphology.
+RandomHorizontalFlip,p=0.5,Lesions have no canonical left-right orientation on skin; mirroring does not change diagnosis.
+RandomVerticalFlip,p=0.5,Camera/patient positioning during capture is arbitrary; flipping does not alter the lesion itself.
+RandomRotation,degrees=30,Dermoscope rotation relative to the lesion is arbitrary at capture time; rotating preserves all diagnostic structure.
+ColorJitter (brightness only),brightness=0.03,"Simulates minor lighting/exposure variation across acquisitions, kept deliberately BELOW the real measured Benign/Malignant brightness gap (A3.5: V gap ~0.056) so the real clinical signal is not erased."
+ColorJitter (hue),EXCLUDED,"A3.5 found even the mildest tested hue setting (0.02) produces a larger shift (~4.3deg) than the real class hue gap (~2.4deg) -- any hue jitter risks washing out a genuine, already-weak diagnostic signal."
+Normalize,ImageNet mean/std,"Standard preprocessing to match pretrained backbone statistics; a per-channel linear rescaling, does not alter diagnostic content."

@@ -2,30 +2,15 @@
 
 ## Label strategy
 
-The primary target is `diagnosis_1` (Benign / Malignant / Indeterminate).
-**Indeterminate is kept as a 3rd class** rather than merged or dropped:
-dropping ignores that ambiguous lesions still occur at inference, merging
-into Malignant inflates unnecessary workups, and merging into Benign risks
-missing real malignancies. Its rarity (123/5,240 lesions, 2.3% globally)
-is handled through class weighting, not by removing the class.
+The main objective is the classification of `diagnosis_1` (Benign / Malignant / Indeterminate).
+**Indeterminate is maintained as a separate group** and is not removed or merged: removing does not account for the presence of lesions that can be ambiguous in nature at the time of interpretation, merging with the Malignant group brings about the workload that is not necessary, while merging with the Benign class may lead to loss of the malignant lesions.
+In order not to lose out on the classification class, the fact that it is rare (123/5,240 lesions, 2.3% globally) is dealt with through class-weighting.
 
-For the 11-class stretch target, all 11 classes are kept separate rather
-than merging the rarest ones (DF, INF, VASC, BEN_OTH, MAL_OTH; all <75
-lesions). Merging was rejected because four of these five are **Benign**
-while **MAL_OTH is Malignant** — a merged "OTHER" bucket would mix
-malignant and benign lesions under one label, which is clinically
-incoherent and would corrupt the otherwise-clean 11-class→`diagnosis_1`
-mapping (only `AKIEC` is genuinely ambiguous there: 180 Malignant vs. 123
-Indeterminate lesions). Rarity is instead handled via class weighting,
-with the caveat that `MAL_OTH` (n=9 lesions total) will have statistically
-unreliable per-class metrics regardless of strategy.
+The creation of an 11-class target will ensure that all classes remain separate rather than combining the rarest classes (DF, INF, VASC, BEN_OTH, MAL_OTH, all below 75 lesions). Class combination is not optimal for four of these five classes since they are **Benign**, and **MAL_OTH** is malignant. However, because malignant and benign tumors would get mixed in one bucket in case of combination, it would violate clinical protocol to maintain a clear mapping during the process of diagnosis. It needs to be stated that even though rarity is maintained by assigning class weights, `MAL_OTH` (N=9 lesions) will not be statistically reliable.
 
 ## Split design and verification
 
-Splitting is done at the **lesion** level — the atomic clinical unit,
-since both of a lesion's two images (dermoscopic + clinical) share one
-diagnosis. `StratifiedGroupKFold` groups by `lesion_id` and stratifies on
-the 11-class label, with `seed=0`, `val_size=0.15`, `test_size=0.15`.
+The process of splitting occurs at the **lesion** level, which is the smallest clinical unit because both representations of a lesion (dermoscopic and clinical) carry the same diagnosis. `StratifiedGroupKFold` takes into account both the `lesion_id` while grouping instances and ensures that the instances split correspond to their class labels across the 11 classes with `seed=0`, `val_size=0.15`, and `test_size=0.15`.
 
 Verification results (full dataset, 5,240 lesions / 10,480 images):
 - **Zero lesion_id overlap** between every pair of splits.
@@ -52,66 +37,18 @@ imbalance-handling strategy below.
 
 ## Quality issues found and handling
 
-- **Full-dataset image integrity scan** (10,480 files): all rows
-  resolved to an existing file, and `Image.verify()` found zero
-  unreadable files. The loader raises `FileNotFoundError` by default on
-  a missing file rather than silently skipping it.
-- **Shortcut risk — `image_manipulation`**: cross-tabbed against
-  `diagnosis_1`, "altered" images show a 12.8% Indeterminate rate vs.
-  2.0% for "instrument only" (6× difference), reflecting acquisition
-  practice, not biology. **Excluded from model inputs.**
-- **Label-leakage columns excluded**: `diagnosis_2/3/4` (directly
-  determine `diagnosis_1`), `diagnosis_confirm_type` (72% Malignant for
-  histopathology-confirmed vs. 2% for clinical-assessment-only — a proxy
-  for the label itself), `melanocytic` (near-deterministic function of
-  class).
-- **Missing values**: `age_approx` (0.4% missing) imputed with the
-  train-only median; `anatom_site_general` (37.3%) and `melanocytic`
-  (77.2%) encoded as an explicit "unknown" category rather than dropped,
-  since missingness itself was found to be informative (NV lesions are
-  11pp more common among site-missing rows).
+- **Full-dataset image integrity scan** (10,480 files): all rows were referred to an available file, while `Image.verify()` detected zero unreadable files. The loader throws `FileNotFoundError` by default if it fails to find a missing file rather than ignoring it completely.
+- **The risk of shortcutting — `image_manipulation`**: when compared with `diagnosis_1`, "altered" images demonstrate a 12.8% Indeterminate score vs. 2.0% for "instrument only" (6× difference), which indicates the practice of acquisition, not biology. **Excluded from model inputs.**
+- **Columns with label leakage excluded**: `diagnosis_2/3/4` (directly dictate `diagnosis_1`), `diagnosis_confirm_type` (72% Malignant for those confirmed by histopathology vs. 2% for those determined clinically — a proxy for the label itself), `melanocytic` (more or less deterministic function of the class).
+- **Missing data**: `age_approx` (0.4% missing) filled with the median from train-only; `anatom_site_general` (37.3%) and `melanocytic` (77.2%) considered as "unknown" category rather than removed, as missingness alone was informative (NV lesions occurred 11pp more on the rows with missing site).
 
 ## Preprocessing choices
 
-- **Resolution: 224×224.** A full scan of all 10,480 images confirmed
-  100% are larger than both 224px and 256px in both dimensions (every
-  image is uniformly 600×450) — both choices only downsample, so 224 was
-  selected for ImageNet-backbone compatibility and lower compute cost.
-- **Normalization**: standard ImageNet mean/std
-  (`[0.485,0.456,0.406]`/`[0.229,0.224,0.225]`).
-- **Augmentations (train only)**: horizontal flip (p=0.5), vertical flip
-  (p=0.5), rotation (±30°) — justified by the lack of any canonical
-  lesion orientation. Brightness jitter is capped at 0.03, deliberately
-  **below** the real measured Benign/Malignant brightness gap (V≈0.056,
-  from a dedicated quantitative audit). **Hue jitter is excluded
-  entirely**: even the mildest tested setting (0.02) produced a larger
-  shift (~4.3°) than the real class hue gap (~2.4°), so any hue
-  augmentation risks erasing a genuine, already-weak clinical signal.
-- **Imbalance handling**: both inverse-frequency class-weighted loss
-  weights and a `WeightedRandomSampler` are implemented together; the
-  sampler was verified to produce near-balanced batches (20-batch
-  histogram: Benign 224, Indeterminate 226, Malignant 190) despite the
-  raw 29:1 train imbalance. Batch sanity checks confirmed correct shape
-  `(32,3,224,224)`, dtype `float32`, and min/max values matching the
-  theoretical normalization bounds exactly (-2.118/2.640).
+- **Resolution: 224×224.** A full scan of all 10,480 images confirmed 100% are larger than both 224px and 256px in both dimensions (every image is uniformly 600×450) — both choices only downsample, so 224 was selected for ImageNet-backbone compatibility and lower compute cost.
+- **Normalization**: standard ImageNet mean/std (`[0.485,0.456,0.406]`/`[0.229,0.224,0.225]`).
+- **Augmentations (train only)**: horizontal flip (p=0.5), vertical flip (p=0.5), rotation (±30°) — justified by the lack of any canonical lesion orientation. Brightness jitter is capped at 0.03, deliberately **below** the real measured Benign/Malignant brightness gap (V≈0.056, from a dedicated quantitative audit). **Hue jitter is excluded entirely**: even the mildest tested setting (0.02) produced a larger shift (~4.3°) than the real class hue gap (~2.4°), so any hue augmentation risks erasing a genuine, already-weak clinical signal.
+- **Imbalance handling**: both inverse-frequency class-weighted loss weights and a `WeightedRandomSampler` are implemented together; the sampler was verified to produce near-balanced batches (20-batch histogram: Benign 224, Indeterminate 226, Malignant 190) despite the raw 29:1 train imbalance. Batch sanity checks confirmed correct shape `(32,3,224,224)`, dtype `float32`, and min/max values matching the theoretical normalization bounds exactly (-2.118/2.640).
 
 ## What could still go wrong
 
-Several risks remain despite this pipeline. First, **residual leakage**:
-even with a leak-free lesion-level split, two visually near-duplicate
-images of the same lesion could still let a sufficiently expressive model
-implicitly learn acquisition-specific cues rather than diagnostic
-features, and evaluation must always aggregate predictions to the lesion
-level, never per-image. Second, **biopsy-enrichment bias**: MILK10k is
-not a random sample of lesions — it is skewed toward lesions a clinician
-already suspected, producing a 69% Malignant / 28% Benign split that
-inverts real-world prevalence. Any accuracy figure from this model should
-not be read as real-world diagnostic performance; sensitivity/specificity
-or explicit recalibration to a realistic prior are more appropriate.
-Third, **unreliable rare-class metrics**: classes like `MAL_OTH` (9
-lesions total) will have inherently noisy, low-confidence per-class
-metrics regardless of split or weighting strategy — a clinician should
-treat this model's performance on rare categories as unproven. Finally,
-demographic and acquisition-device representativeness have not been
-audited in this milestone and remain an open risk for generalization
-beyond this dataset's specific population and equipment.
+In spite of this pipeline, there are still various risks. First, **residual leakage**: even in the absence of any leakage at the lesion level, if two nearly identical images are taken of the same lesion, a model that is powerful enough could learn to extract the features associated with different acquisition processes instead of those relevant for diagnosis, therefore requiring the aggregation of the predictions at the lesion level rather than at the image level. Second, **biopsy-enrichment bias**: MILK10k does not constitute a random selection of lesions; it contains a significant number of lesions that doctors suspected were harmful, which leads to a composed data set with 69% malignant and only 28% benign cases that depending on the data set can be the opposite of reality. While any performance number generated by this model could not be construed as a true diagnostic measure in the real-world applications of sensitivity/specificity and calibrating to realistic priors, there are some serious issues with those **unreliable rare-class metrics** present in the classes where our targets would be `MAL_OTH` (only total of 9 lesions being present), and across the board, the outputs would be very noisy and uncertain whenever we looked at the performances of several models that were not weighted properly.

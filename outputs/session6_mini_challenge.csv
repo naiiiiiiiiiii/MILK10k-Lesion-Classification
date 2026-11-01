@@ -1,0 +1,7 @@
+experiment,parameters,final train loss,final val loss,final val F1,best val F1,best epoch,beats forest (0.547)?
+"baseline (64, lr=1e-3)",2371,0.66,0.831,0.524,0.529,42,False
+lr = 0.1,2371,0.875,1.191,0.439,0.525,29,False
+lr = 1e-5,2371,1.031,1.019,0.406,0.406,49,False
+width = 4,151,0.806,0.844,0.469,0.47,33,False
+width = 256,9475,0.556,0.92,0.512,0.554,38,False
+"depth = (64, 64)",6531,0.514,0.97,0.526,0.545,42,False

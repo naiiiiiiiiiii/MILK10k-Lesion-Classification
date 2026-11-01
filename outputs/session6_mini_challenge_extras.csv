@@ -1,0 +1,6 @@
+run,epochs,train loss,val loss,val-train gap,final val F1,best val F1
+"lr = 1e-5, 50 epochs (challenge)",50,1.031,1.019,-0.011,0.406,0.406
+"lr = 1e-5, 300 epochs",300,0.884,0.867,-0.017,0.461,0.47
+"baseline 64, lr = 1e-3, 50 epochs",50,0.66,0.831,0.171,0.524,0.529
+"width = 256, no regularisation",50,0.556,0.92,0.364,0.512,0.554
+"width = 256, dropout 0.3 + wd 1e-4",50,0.632,0.873,0.242,0.514,0.541

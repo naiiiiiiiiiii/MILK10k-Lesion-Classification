@@ -1,0 +1,12 @@
+{
+  "features": "extended_44",
+  "model": "RandomForest (balanced)",
+  "val_macro_f1": 0.5601264420987706,
+  "test_accuracy": 0.7543391188251002,
+  "test_macro_f1": 0.5034405535659018,
+  "test_recall": {
+    "Benign": 0.5518867924528302,
+    "Indeterminate": 0.058823529411764705,
+    "Malignant": 0.8596153846153847
+  }
+}

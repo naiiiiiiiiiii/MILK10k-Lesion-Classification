@@ -1,0 +1,7 @@
+experiment,mean final val F1,std
+"baseline (64, lr=1e-3)",0.513,0.01
+lr = 0.1,0.423,0.039
+lr = 1e-5,0.425,0.032
+width = 4,0.449,0.014
+width = 256,0.518,0.005
+"depth = (64, 64)",0.514,0.019

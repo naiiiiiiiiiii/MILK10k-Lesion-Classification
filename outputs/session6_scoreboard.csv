@@ -1,0 +1,4 @@
+,val macro-F1,test macro-F1,test accuracy,recall Benign,recall Indeterminate,recall Malignant
+Session 5 - random forest (33 features),0.547,0.531,0.752,0.566,0.125,0.849
+Session 6 - MLP 33-64-3 (33 features),0.532,0.508,0.68,0.606,0.458,0.718
+"Session 6 - MLP on raw pixels (pixels 3072-64-3 + dropout 0.3, wd 1e-4)",0.518,0.484,0.687,0.697,0.125,0.702

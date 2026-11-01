@@ -1,0 +1,4 @@
+model,parameters,final train loss,final val loss,final val F1,best val F1
+33 features 33-64-3 (class baseline),2371,0.653,0.843,0.532,0.534
+pixels 3072-64-3,196867,0.207,2.591,0.454,0.546
+"pixels 3072-64-3 + dropout 0.3, wd 1e-4",196867,0.512,1.592,0.518,0.549

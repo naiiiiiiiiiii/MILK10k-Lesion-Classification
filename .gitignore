@@ -224,3 +224,21 @@ data/
 *.png
 *.jpg
 *.jpeg
+session_07_cnns/_output/
+session_07_cnns/_output/
+
+venv/
+data/
+outputs/*.pt
+notebooks/outputs/*.pt
+__pycache__/
+.ipynb_checkpoints/
+*.pt
+session_07_cnns/_output/
+venv/
+session_07_cnns/_output/
+
+# Session 7 heavy artifacts
+session_07_cnns/_output/
+outputs/session_07_hw/*.pt
+outputs/session_07_hw/*.npy
